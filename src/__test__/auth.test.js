@@ -17,6 +17,6 @@ test('should return true for authenticated function', () => {
     const mockDate = new Date(1516239020);
     jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
 
-    expect(mockAuthenticated()).toBeTruthy();
+    expect(mockAuthenticated()).toBe(true);
 });
 
