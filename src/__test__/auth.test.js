@@ -1,4 +1,4 @@
-import {authenticated as mockAuthenticated} from '../auth';
+import {authenticated} from '../auth';
 
 test('should return true for authenticated function', () => {
 
@@ -9,7 +9,7 @@ test('should return true for authenticated function', () => {
     const mockDate = new Date(1516239020);
     const mockDateImplementation = jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
 
-    expect(mockAuthenticated()).toBe(true);
+    expect(authenticated()).toBe(true);
 
     mockDateImplementation.mockRestore();
 
