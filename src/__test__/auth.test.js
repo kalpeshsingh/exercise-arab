@@ -1,4 +1,12 @@
-import {authenticated} from '../auth';
+import {authenticated, login} from '../auth';
+import {toast} from "react-toastify";
+
+
+jest.mock('react-toastify');
+
+afterEach(() => {
+    jest.clearAllMocks()
+});
 
 test('should return true for authenticated function', () => {
 
@@ -15,3 +23,54 @@ test('should return true for authenticated function', () => {
 
 });
 
+test('should successfully login', async (done) => {
+
+    const values = {email: "kalpesh.singh@foo.com", password: "1234"};
+
+    const setSubmitting = jest.fn((val) => val);
+
+    const nav = {
+        push: jest.fn()
+    };
+
+    const mockSuccessResponse = {success: true};
+    const mockJsonPromise = Promise.resolve(mockSuccessResponse);
+    const mockFetchPromise = Promise.resolve({
+        json: () => mockJsonPromise
+    });
+
+
+    const backendUrl = jest.fn(() => {
+        return process.env.REACT_APP_DEVELOPMENT_API;
+    });
+
+    jest.spyOn(global, 'fetch').mockImplementation(() => mockFetchPromise);
+    jest.spyOn(Storage.prototype, 'setItem');
+    jest.spyOn(Storage.prototype, 'removeItem');
+
+    Storage.prototype.getItem = jest.fn();
+    Storage.prototype.removeItem = jest.fn();
+
+
+    await login(values, setSubmitting, nav);
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/login`, {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values)
+    });
+
+    expect(nav.push).toHaveBeenCalledTimes(1);
+    expect(nav.push).toHaveBeenCalledWith('/home');
+
+    expect(toast.success).toHaveBeenCalledTimes(1);
+    expect(toast.success).toHaveBeenCalledWith('Login Successful');
+
+    expect(setSubmitting).toHaveBeenCalledTimes(1);
+
+    done();
+});
