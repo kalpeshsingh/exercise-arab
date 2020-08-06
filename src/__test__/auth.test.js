@@ -23,7 +23,7 @@ test('should return true for authenticated function', () => {
 
 });
 
-test('should successfully login', async (done) => {
+test('should successfully login', async () => {
 
     const values = {email: "kalpesh.singh@foo.com", password: "1234"};
 
@@ -71,6 +71,4 @@ test('should successfully login', async (done) => {
     expect(toast.success).toHaveBeenCalledWith('Login Successful');
 
     expect(setSubmitting).toHaveBeenCalledTimes(1);
-
-    done();
 });
