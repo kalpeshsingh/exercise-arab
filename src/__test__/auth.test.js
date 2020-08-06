@@ -56,8 +56,7 @@ test('should successfully login', async () => {
     jest.spyOn(Storage.prototype, 'setItem');
     jest.spyOn(Storage.prototype, 'removeItem');
 
-    // fix this part
-    Storage.prototype.getItem = jest.fn();
+    Storage.prototype.setItem = jest.fn();
     Storage.prototype.removeItem = jest.fn();
 
 
