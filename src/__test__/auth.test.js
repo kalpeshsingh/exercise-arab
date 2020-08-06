@@ -1,6 +1,14 @@
-import {authenticated, login} from '../auth';
+import {authenticated, login, backendUrl, getLoanByStatus} from '../auth';
 import {toast} from "react-toastify";
 
+
+/***TODO:
+ * logout() function - We should ideally split into testable chunks
+ * backendUrl() function - Need to see how can we override variable in this file to test production environment case
+ * Write better test description
+ * Add comments
+ *
+ */
 
 jest.mock('react-toastify');
 
@@ -48,6 +56,7 @@ test('should successfully login', async () => {
     jest.spyOn(Storage.prototype, 'setItem');
     jest.spyOn(Storage.prototype, 'removeItem');
 
+    // fix this part
     Storage.prototype.getItem = jest.fn();
     Storage.prototype.removeItem = jest.fn();
 
@@ -71,4 +80,42 @@ test('should successfully login', async () => {
     expect(toast.success).toHaveBeenCalledWith('Login Successful');
 
     expect(setSubmitting).toHaveBeenCalledTimes(1);
+});
+
+test('should return local development url', () => {
+    expect(backendUrl()).toBe(process.env.REACT_APP_DEVELOPMENT_API);
+});
+
+test('should get load status', async () => {
+    const mockSuccessResponse = {success: true, token: 'abc', data: {}};
+    const mockJsonPromise = Promise.resolve(mockSuccessResponse);
+    const mockFetchPromise = Promise.resolve({
+        json: () => mockJsonPromise
+    });
+    jest.spyOn(global, 'fetch').mockImplementation(() => mockFetchPromise);
+
+    jest.spyOn(Storage.prototype, 'getItem');
+    jest.spyOn(Storage.prototype, 'setItem');
+
+    Storage.prototype.getItem = jest.fn();
+    Storage.prototype.setItem = jest.fn();
+
+
+    const status = "1";
+    const handleStateChange = jest.fn();
+
+    await getLoanByStatus(status, handleStateChange);
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/loan/show?status=${status}&user_id=${localStorage.getItem('user_id')}`, {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    });
+
+    expect(handleStateChange).toHaveBeenCalledTimes(1);
+    expect(handleStateChange).toHaveBeenCalledWith(status, mockSuccessResponse.data);
+    expect(handleStateChange.mock.calls[0].length).toBe(2);
+
 });

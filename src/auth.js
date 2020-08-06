@@ -137,7 +137,7 @@ export const authenticated = () => {
 
 
 export const getLoanByStatus = (status, handleStateChange) => {
-    fetch(`${backendUrl()}/loan/show?status=${status}&user_id=${localStorage.getItem('user_id')}`, {
+    return fetch(`${backendUrl()}/loan/show?status=${status}&user_id=${localStorage.getItem('user_id')}`, {
         headers: {
             'Content-Type': 'application/json',
             'Authorization' : `Bearer ${localStorage.getItem('token')}`
