@@ -31,6 +31,16 @@ test('should return true for authenticated function', () => {
 
 });
 
+test('should return false for authenticated function', () => {
+
+    jest.spyOn(Storage.prototype, 'getItem');
+
+    Storage.prototype.getItem = jest.fn();
+
+    expect(authenticated()).toBe(false);
+
+});
+
 test('should successfully login', async () => {
 
     const values = {email: "kalpesh.singh@foo.com", password: "1234"};
