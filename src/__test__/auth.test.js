@@ -10,11 +10,20 @@ import {toast} from "react-toastify";
  * Common out repeated code
  */
 
+const OLD_ENV = process.env;
+
+beforeEach(() => {
+    jest.resetModules(); // most important - it clears the cache
+    process.env = { ...OLD_ENV }; // make a copy
+});
+
 jest.mock('react-toastify');
 
 afterEach(() => {
-    jest.clearAllMocks()
+    jest.clearAllMocks();
+    process.env = OLD_ENV; // restore old env
 });
+
 
 test('should return true for authenticated function', () => {
 
@@ -172,7 +181,16 @@ test('should return local development url', () => {
     expect(backendUrl()).toBe(process.env.REACT_APP_DEVELOPMENT_API);
 });
 
+
+test('should return production development url', () => {
+    process.env.NODE_ENV = 'production';
+    expect(backendUrl()).toBe(process.env.REACT_APP_PRODUCTION_API);
+});
+
+
+
 test('should get load status', async () => {
+    console.log("Loadd", process.env.NODE_ENV);
     const mockSuccessResponse = {success: true, token: 'abc', data: {}};
     const mockJsonPromise = Promise.resolve(mockSuccessResponse);
     const mockFetchPromise = Promise.resolve({
