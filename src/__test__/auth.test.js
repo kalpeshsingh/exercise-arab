@@ -84,6 +84,57 @@ test('should successfully login', async () => {
     expect(setSubmitting).toHaveBeenCalledWith(false);
 });
 
+test('should successfully login with error', async () => {
+
+    const values = {email: "kalpesh.singh@foo.com", password: "1234"};
+
+    const setSubmitting = jest.fn((val) => val);
+
+    const nav = {
+        push: jest.fn()
+    };
+
+    const mockSuccessResponse = {success: false, msg: "You need to be admin to access this area."};
+    const mockJsonPromise = Promise.resolve(mockSuccessResponse);
+    const mockFetchPromise = Promise.resolve({
+        json: () => mockJsonPromise
+    });
+
+
+    const backendUrl = jest.fn(() => {
+        return process.env.REACT_APP_DEVELOPMENT_API;
+    });
+
+    jest.spyOn(global, 'fetch').mockImplementation(() => mockFetchPromise);
+    jest.spyOn(Storage.prototype, 'setItem');
+    jest.spyOn(Storage.prototype, 'removeItem');
+
+    Storage.prototype.setItem = jest.fn();
+    Storage.prototype.removeItem = jest.fn();
+
+
+    await login(values, setSubmitting, nav);
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/login`, {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values)
+    });
+
+
+    expect(toast.error).toHaveBeenCalledTimes(1);
+    expect(toast.error).toHaveBeenCalledWith(`Error: ${mockSuccessResponse.msg}`, {position: toast.POSITION.BOTTOM_CENTER});
+    expect(toast.error.mock.calls[0].length).toBe(2);
+
+    expect(setSubmitting).toHaveBeenCalledTimes(1);
+    expect(setSubmitting.mock.calls[0].length).toBe(1);
+    expect(setSubmitting).toHaveBeenCalledWith(false);
+});
+
 test('should fail login', async () => {
     const mockFailureResponse = Promise.reject();
 
