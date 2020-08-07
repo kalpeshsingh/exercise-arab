@@ -7,7 +7,7 @@ import {toast} from "react-toastify";
  * backendUrl() function - Need to see how can we override variable in this file to test production environment case
  * Write better test description
  * Add comments
- *
+ * Common out repeated code
  */
 
 jest.mock('react-toastify');
@@ -193,6 +193,45 @@ test('should get load status', async () => {
     expect(handleStateChange).toHaveBeenCalledTimes(1);
     expect(handleStateChange).toHaveBeenCalledWith(status, mockSuccessResponse.data);
     expect(handleStateChange.mock.calls[0].length).toBe(2);
+
+});
+
+test('should get load status with error', async () => {
+    const mockSuccessResponse = {
+        success: false,
+        token: 'abc',
+        data: {},
+        msg: "You need to be admin to access this area."
+    };
+    const mockJsonPromise = Promise.resolve(mockSuccessResponse);
+    const mockFetchPromise = Promise.resolve({
+        json: () => mockJsonPromise
+    });
+    jest.spyOn(global, 'fetch').mockImplementation(() => mockFetchPromise);
+
+    jest.spyOn(Storage.prototype, 'getItem');
+    jest.spyOn(Storage.prototype, 'setItem');
+
+    Storage.prototype.getItem = jest.fn();
+    Storage.prototype.setItem = jest.fn();
+
+
+    const status = "1";
+    const handleStateChange = jest.fn();
+
+    await getLoanByStatus(status, handleStateChange);
+
+    expect(global.fetch).toHaveBeenCalledTimes(1);
+    expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/loan/show?status=${status}&user_id=${localStorage.getItem('user_id')}`, {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    });
+
+    expect(toast.info).toHaveBeenCalledTimes(1);
+    expect(toast.info).toHaveBeenCalledWith(JSON.stringify(`${mockSuccessResponse.msg}`), {position: toast.POSITION.BOTTOM_CENTER});
+    expect(toast.info.mock.calls[0].length).toBe(2);
 
 });
 
