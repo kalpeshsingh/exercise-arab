@@ -144,3 +144,19 @@ test('should get load status', async () => {
     expect(handleStateChange.mock.calls[0].length).toBe(2);
 
 });
+
+test('should get load status fail', async () => {
+    const mockFailureResponse = Promise.reject();
+
+    jest.spyOn(global, 'fetch').mockImplementation(() => mockFailureResponse);
+
+    const status = "1";
+    const handleStateChange = jest.fn();
+
+    await getLoanByStatus(status, handleStateChange);
+
+    expect(toast.info).toHaveBeenCalledTimes(1);
+    expect(toast.info).toHaveBeenCalledWith('Error something went wrong, check your internet status', {position: toast.POSITION.BOTTOM_CENTER});
+    expect(toast.info.mock.calls[0].length).toBe(2);
+
+});
