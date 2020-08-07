@@ -77,8 +77,34 @@ test('should successfully login', async () => {
 
     expect(toast.success).toHaveBeenCalledTimes(1);
     expect(toast.success).toHaveBeenCalledWith('Login Successful');
+    expect(toast.success.mock.calls[0].length).toBe(1);
 
     expect(setSubmitting).toHaveBeenCalledTimes(1);
+    expect(setSubmitting.mock.calls[0].length).toBe(1);
+    expect(setSubmitting).toHaveBeenCalledWith(false);
+});
+
+test('should fail login', async () => {
+    const mockFailureResponse = Promise.reject();
+
+
+    const values = {email: "kalpesh.singh@foo.com", password: "1234"};
+
+    const setSubmitting = jest.fn((val) => val);
+
+    const nav = {
+        push: jest.fn()
+    };
+
+    jest.spyOn(global, 'fetch').mockImplementation(() => mockFailureResponse);
+
+    await login(values, setSubmitting, nav);
+    expect(toast).toHaveBeenCalledTimes(1);
+    expect(setSubmitting).toHaveBeenCalledTimes(1);
+    expect(setSubmitting.mock.calls[0].length).toBe(1);
+    expect(setSubmitting).toHaveBeenCalledWith(false);
+
+
 });
 
 test('should return local development url', () => {
