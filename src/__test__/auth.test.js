@@ -131,6 +131,15 @@ test('should return true if token from localstorage is valid', () => {
     /** assertion of function **/
     expect(authenticated()).toBe(true);
 
+    /** assertion of localstorage module **/
+    expect(localStorage.getItem).toHaveBeenCalledWith('token');
+    expect(localStorage.getItem).toHaveBeenCalledTimes(1);
+
+    /** assertion of Date constructor **/
+    expect(global.Date).toHaveBeenCalledTimes(1);
+    expect(global.Date.mock.calls[0].length).toBe(0); // no param
+
+
     /** restore mock values **/
     mockDateImplementation.mockRestore();
 
@@ -150,7 +159,7 @@ test('should return false if localstorage dosn\'t have token', () => {
 test('should successfully make the login call', async () => {
 
     /** mocks **/
-    const mockResponse = {success: true};
+    const mockResponse = {success: true, token: 'abc', user_id: 'vipul'};
     const {values, setSubmitting, nav, backendUrl, fetchParams} = getLoginMockValues(mockResponse);
 
     await login(values, setSubmitting, nav);
@@ -158,6 +167,15 @@ test('should successfully make the login call', async () => {
     /** assertion of fetch module **/
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/login`, fetchParams);
+
+
+    /** assertion of localstorage module **/
+    expect(localStorage.setItem).toHaveBeenCalledWith('token', mockResponse.token);
+    expect(localStorage.removeItem).toHaveBeenCalledWith('loan-form');
+    expect(localStorage.setItem).toHaveBeenCalledWith('user_id', mockResponse.user_id);
+
+    expect(localStorage.setItem).toHaveBeenCalledTimes(2);
+    expect(localStorage.removeItem).toHaveBeenCalledTimes(1);
 
     /** assertion of nav module **/
     expect(nav.push).toHaveBeenCalledTimes(1);
@@ -211,7 +229,9 @@ test('should fail the login call', async () => {
     await login(values, setSubmitting, nav);
 
     /** assertion of toast module **/
+    expect(toast).toHaveBeenCalledWith('Something went wrong, Internet might be down');
     expect(toast).toHaveBeenCalledTimes(1);
+    expect(toast.mock.calls[0].length).toBe(1);
 
     /** assertion of callback **/
     expect(setSubmitting).toHaveBeenCalledTimes(1);
