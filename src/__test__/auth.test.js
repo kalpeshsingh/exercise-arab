@@ -5,11 +5,9 @@ import {toast} from "react-toastify";
 import {authenticated, login, backendUrl, getLoanByStatus} from '../auth';
 
 
-/***TODO:
- * logout() function - We should ideally split into testable chunks
- * Compare code and test to see validate
+/***PENDING:
+ * logout() function - Keeping for original repository owner.
  */
-
 
 /** test setup **/
 const OLD_ENV = process.env;
