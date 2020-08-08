@@ -7,7 +7,6 @@ import {authenticated, login, backendUrl, getLoanByStatus} from '../auth';
 
 /***TODO:
  * logout() function - We should ideally split into testable chunks
- * Write better test description
  * Compare code and test to see validate
  */
 
@@ -119,7 +118,7 @@ function getLoanStatusMockValues(mockResponse = {}) {
 }
 
 
-test('should return true for authenticated function', () => {
+test('should return true if token from localstorage is valid', () => {
 
     /** mocks **/
     const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOiIxNTE2MjQwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.ervjmmR5MAjz-ZJpEO8nhQpptXclhoJJn1-iDMw6ULA';
@@ -137,7 +136,7 @@ test('should return true for authenticated function', () => {
 
 });
 
-test('should return false for authenticated function', () => {
+test('should return false if localstorage dosn\'t have token', () => {
 
     /** mocks **/
     jest.spyOn(Storage.prototype, 'getItem');
@@ -148,7 +147,7 @@ test('should return false for authenticated function', () => {
 
 });
 
-test('should successfully login', async () => {
+test('should successfully make the login call', async () => {
 
     /** mocks **/
     const mockResponse = {success: true};
@@ -175,7 +174,7 @@ test('should successfully login', async () => {
     expect(setSubmitting).toHaveBeenCalledWith(false);
 });
 
-test('should successfully login with error', async () => {
+test('should successfully make the login call with error response', async () => {
 
     /** mocks **/
     const mockResponse = {
@@ -202,7 +201,7 @@ test('should successfully login with error', async () => {
     expect(setSubmitting).toHaveBeenCalledWith(false);
 });
 
-test('should fail login', async () => {
+test('should fail the login call', async () => {
 
     /** mocks **/
     const mockFailureResponse = Promise.reject();
@@ -233,7 +232,7 @@ test('should return production development url', () => {
 });
 
 
-test('should get load status', async () => {
+test('should make loan status call', async () => {
 
     /** mocks **/
     const mockSuccessResponse = {success: true, token: 'abc', data: {}};
@@ -254,7 +253,7 @@ test('should get load status', async () => {
 
 });
 
-test('should get load status with error', async () => {
+test('should make loan status call with error response', async () => {
 
     /** mocks **/
     const mockSuccessResponse = {
@@ -280,7 +279,7 @@ test('should get load status with error', async () => {
 
 });
 
-test('should get load status fail', async () => {
+test('should fail loan status call', async () => {
 
     /** mocks **/
     const mockFailureResponse = Promise.reject();
