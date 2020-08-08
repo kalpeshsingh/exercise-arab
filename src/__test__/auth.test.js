@@ -206,8 +206,8 @@ test('should fail login', async () => {
 
     /** mocks **/
     const mockFailureResponse = Promise.reject();
-    jest.spyOn(global, 'fetch').mockImplementation(() => mockFailureResponse);
     const {values, setSubmitting, nav} = getLoginMockValues();
+    jest.spyOn(global, 'fetch').mockImplementation(() => mockFailureResponse);
 
     await login(values, setSubmitting, nav);
 
