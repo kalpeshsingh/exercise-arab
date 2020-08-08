@@ -1,35 +1,132 @@
-import {authenticated, login, backendUrl, getLoanByStatus} from '../auth';
+/** 3P imports **/
 import {toast} from "react-toastify";
+
+/** test function imports **/
+import {authenticated, login, backendUrl, getLoanByStatus} from '../auth';
 
 
 /***TODO:
  * logout() function - We should ideally split into testable chunks
- * backendUrl() function - Need to see how can we override variable in this file to test production environment case
  * Write better test description
  * Add comments
- * Common out repeated code
  */
 
+
+/** test setup **/
 const OLD_ENV = process.env;
-
-beforeEach(() => {
-    jest.resetModules(); // most important - it clears the cache
-    process.env = { ...OLD_ENV }; // make a copy
-});
-
 jest.mock('react-toastify');
 
+/** test clean up **/
 afterEach(() => {
     jest.clearAllMocks();
     process.env = OLD_ENV; // restore old env
 });
+beforeEach(() => {
+    jest.resetModules(); // most important - it clears the cache
+    process.env = {...OLD_ENV}; // make a copy
+});
+
+
+/**
+ * supply common values to login related tests
+ * @param mockResponse
+ * @returns {{setSubmitting: *, mockSuccessResponse, nav: {push: *}, values: {password: string, email: string}, backendUrl: *, mockFetchPromise: Promise<{json: (function(): Promise<any>)}>}}
+ */
+function getLoginMockValues(mockResponse = {}) {
+
+    /** login function params **/
+    const values = {email: "kalpesh.singh@foo.com", password: "1234"};
+    const setSubmitting = jest.fn((val) => val);
+    const nav = {
+        push: jest.fn()
+    };
+    const fetchParams = {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+            'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values)
+    };
+
+
+    /** mock login function response **/
+    const mockSuccessResponse = mockResponse;
+    const mockJsonPromise = Promise.resolve(mockSuccessResponse);
+    const mockFetchPromise = Promise.resolve({
+        json: () => mockJsonPromise
+    });
+
+    /** other dependent functions **/
+    const backendUrl = jest.fn(() => {
+        return process.env.REACT_APP_DEVELOPMENT_API;
+    });
+
+    /** localstorage spying **/
+    jest.spyOn(global, 'fetch').mockImplementation(() => mockFetchPromise);
+    jest.spyOn(Storage.prototype, 'setItem');
+    jest.spyOn(Storage.prototype, 'removeItem');
+
+    Storage.prototype.setItem = jest.fn();
+    Storage.prototype.removeItem = jest.fn();
+
+    return {
+        values,
+        setSubmitting,
+        nav,
+        fetchParams,
+        mockFetchPromise,
+        mockSuccessResponse,
+        backendUrl
+    }
+}
+
+/**
+ * supply common values to getLoanStatus related tests
+ * @param mockResponse
+ * @returns {{fetchParams: {headers: {Authorization: string, "Content-Type": string}}, handleStateChange: *, mockFetchPromise: Promise<{json: (function(): Promise<any>)}>, status: string}}
+ */
+function getLoanStatusMockValues(mockResponse = {}) {
+
+    /** getLoanStatus function params **/
+    const mockJsonPromise = Promise.resolve(mockResponse);
+    const mockFetchPromise = Promise.resolve({
+        json: () => mockJsonPromise
+    });
+    const status = "1";
+    const handleStateChange = jest.fn();
+
+    /** localstorage spying **/
+    jest.spyOn(Storage.prototype, 'getItem');
+    jest.spyOn(Storage.prototype, 'setItem');
+
+    Storage.prototype.getItem = jest.fn();
+    Storage.prototype.setItem = jest.fn();
+
+    /** fetch params **/
+    const fetchParams = {
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${localStorage.getItem('token')}`
+        }
+    };
+
+    return {
+        mockFetchPromise,
+        status,
+        handleStateChange,
+        fetchParams
+    }
+}
 
 
 test('should return true for authenticated function', () => {
 
+    const token = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOiIxNTE2MjQwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.ervjmmR5MAjz-ZJpEO8nhQpptXclhoJJn1-iDMw6ULA';
+
     jest.spyOn(Storage.prototype, 'getItem');
 
-    Storage.prototype.getItem = jest.fn(() => 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOiIxNTE2MjQwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.ervjmmR5MAjz-ZJpEO8nhQpptXclhoJJn1-iDMw6ULA');
+    Storage.prototype.getItem = jest.fn(() => token);
 
     const mockDate = new Date(1516239020);
     const mockDateImplementation = jest.spyOn(global, 'Date').mockImplementation(() => mockDate);
@@ -52,44 +149,14 @@ test('should return false for authenticated function', () => {
 
 test('should successfully login', async () => {
 
-    const values = {email: "kalpesh.singh@foo.com", password: "1234"};
+    const mockResponse = {success: true};
 
-    const setSubmitting = jest.fn((val) => val);
-
-    const nav = {
-        push: jest.fn()
-    };
-
-    const mockSuccessResponse = {success: true};
-    const mockJsonPromise = Promise.resolve(mockSuccessResponse);
-    const mockFetchPromise = Promise.resolve({
-        json: () => mockJsonPromise
-    });
-
-
-    const backendUrl = jest.fn(() => {
-        return process.env.REACT_APP_DEVELOPMENT_API;
-    });
-
-    jest.spyOn(global, 'fetch').mockImplementation(() => mockFetchPromise);
-    jest.spyOn(Storage.prototype, 'setItem');
-    jest.spyOn(Storage.prototype, 'removeItem');
-
-    Storage.prototype.setItem = jest.fn();
-    Storage.prototype.removeItem = jest.fn();
-
+    const {values, setSubmitting, nav, backendUrl, fetchParams} = getLoginMockValues(mockResponse);
 
     await login(values, setSubmitting, nav);
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/login`, {
-        method: 'POST',
-        mode: 'cors',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(values)
-    });
+    expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/login`, fetchParams);
 
     expect(nav.push).toHaveBeenCalledTimes(1);
     expect(nav.push).toHaveBeenCalledWith('/home');
@@ -105,44 +172,18 @@ test('should successfully login', async () => {
 
 test('should successfully login with error', async () => {
 
-    const values = {email: "kalpesh.singh@foo.com", password: "1234"};
-
-    const setSubmitting = jest.fn((val) => val);
-
-    const nav = {
-        push: jest.fn()
+    const mockResponse = {
+        success: false,
+        msg: "You need to be admin to access this area."
     };
 
-    const mockSuccessResponse = {success: false, msg: "You need to be admin to access this area."};
-    const mockJsonPromise = Promise.resolve(mockSuccessResponse);
-    const mockFetchPromise = Promise.resolve({
-        json: () => mockJsonPromise
-    });
-
-
-    const backendUrl = jest.fn(() => {
-        return process.env.REACT_APP_DEVELOPMENT_API;
-    });
-
-    jest.spyOn(global, 'fetch').mockImplementation(() => mockFetchPromise);
-    jest.spyOn(Storage.prototype, 'setItem');
-    jest.spyOn(Storage.prototype, 'removeItem');
-
-    Storage.prototype.setItem = jest.fn();
-    Storage.prototype.removeItem = jest.fn();
+    const {values, setSubmitting, nav, mockSuccessResponse, backendUrl, fetchParams} = getLoginMockValues(mockResponse);
 
 
     await login(values, setSubmitting, nav);
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/login`, {
-        method: 'POST',
-        mode: 'cors',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(values)
-    });
+    expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/login`, fetchParams);
 
 
     expect(toast.error).toHaveBeenCalledTimes(1);
@@ -155,16 +196,10 @@ test('should successfully login with error', async () => {
 });
 
 test('should fail login', async () => {
+
     const mockFailureResponse = Promise.reject();
 
-
-    const values = {email: "kalpesh.singh@foo.com", password: "1234"};
-
-    const setSubmitting = jest.fn((val) => val);
-
-    const nav = {
-        push: jest.fn()
-    };
+    const {values, setSubmitting, nav} = getLoginMockValues();
 
     jest.spyOn(global, 'fetch').mockImplementation(() => mockFailureResponse);
 
@@ -188,35 +223,16 @@ test('should return production development url', () => {
 });
 
 
-
 test('should get load status', async () => {
-    console.log("Loadd", process.env.NODE_ENV);
     const mockSuccessResponse = {success: true, token: 'abc', data: {}};
-    const mockJsonPromise = Promise.resolve(mockSuccessResponse);
-    const mockFetchPromise = Promise.resolve({
-        json: () => mockJsonPromise
-    });
+
+    const {mockFetchPromise, status, handleStateChange, fetchParams} = getLoanStatusMockValues(mockSuccessResponse);
+
     jest.spyOn(global, 'fetch').mockImplementation(() => mockFetchPromise);
-
-    jest.spyOn(Storage.prototype, 'getItem');
-    jest.spyOn(Storage.prototype, 'setItem');
-
-    Storage.prototype.getItem = jest.fn();
-    Storage.prototype.setItem = jest.fn();
-
-
-    const status = "1";
-    const handleStateChange = jest.fn();
-
     await getLoanByStatus(status, handleStateChange);
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/loan/show?status=${status}&user_id=${localStorage.getItem('user_id')}`, {
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-    });
+    expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/loan/show?status=${status}&user_id=${localStorage.getItem('user_id')}`, fetchParams);
 
     expect(handleStateChange).toHaveBeenCalledTimes(1);
     expect(handleStateChange).toHaveBeenCalledWith(status, mockSuccessResponse.data);
@@ -231,31 +247,16 @@ test('should get load status with error', async () => {
         data: {},
         msg: "You need to be admin to access this area."
     };
-    const mockJsonPromise = Promise.resolve(mockSuccessResponse);
-    const mockFetchPromise = Promise.resolve({
-        json: () => mockJsonPromise
-    });
+
+    const {mockFetchPromise, status, handleStateChange, fetchParams} = getLoanStatusMockValues(mockSuccessResponse);
+
     jest.spyOn(global, 'fetch').mockImplementation(() => mockFetchPromise);
 
-    jest.spyOn(Storage.prototype, 'getItem');
-    jest.spyOn(Storage.prototype, 'setItem');
-
-    Storage.prototype.getItem = jest.fn();
-    Storage.prototype.setItem = jest.fn();
-
-
-    const status = "1";
-    const handleStateChange = jest.fn();
 
     await getLoanByStatus(status, handleStateChange);
 
     expect(global.fetch).toHaveBeenCalledTimes(1);
-    expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/loan/show?status=${status}&user_id=${localStorage.getItem('user_id')}`, {
-        headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${localStorage.getItem('token')}`
-        }
-    });
+    expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/loan/show?status=${status}&user_id=${localStorage.getItem('user_id')}`, fetchParams);
 
     expect(toast.info).toHaveBeenCalledTimes(1);
     expect(toast.info).toHaveBeenCalledWith(JSON.stringify(`${mockSuccessResponse.msg}`), {position: toast.POSITION.BOTTOM_CENTER});
@@ -266,10 +267,9 @@ test('should get load status with error', async () => {
 test('should get load status fail', async () => {
     const mockFailureResponse = Promise.reject();
 
-    jest.spyOn(global, 'fetch').mockImplementation(() => mockFailureResponse);
+    const {status, handleStateChange} = getLoanStatusMockValues();
 
-    const status = "1";
-    const handleStateChange = jest.fn();
+    jest.spyOn(global, 'fetch').mockImplementation(() => mockFailureResponse);
 
     await getLoanByStatus(status, handleStateChange);
 
