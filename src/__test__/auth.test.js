@@ -266,6 +266,10 @@ test('should make loan status call', async () => {
     expect(global.fetch).toHaveBeenCalledTimes(1);
     expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/loan/show?status=${status}&user_id=${localStorage.getItem('user_id')}`, fetchParams);
 
+    /** assertion of localstorage module **/
+    expect(localStorage.setItem).toHaveBeenCalledWith('token', mockSuccessResponse.token);
+    expect(localStorage.setItem).toHaveBeenCalledTimes(1);
+
     /** assertion of callback **/
     expect(handleStateChange).toHaveBeenCalledTimes(1);
     expect(handleStateChange).toHaveBeenCalledWith(status, mockSuccessResponse.data);
