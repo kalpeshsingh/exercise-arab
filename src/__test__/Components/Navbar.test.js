@@ -15,7 +15,7 @@ test('should render Logout button when authenticated true in Navbar', () => {
     jest.spyOn(mockAuth, 'authenticated').mockImplementation(() => true);
     jest.spyOn(global, 'fetch').mockResolvedValueOnce({});
 
-    /** prepare routing and render page **/
+    /** prepare routing and render navbar **/
     const history = createMemoryHistory({initialEntries: ['/something']});
     const {getByTestId, queryByTestId, rerender} = render(<Router history={history}><Navbar/></Router>);
 
