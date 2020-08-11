@@ -8,19 +8,20 @@ import {createMemoryHistory} from 'history';
 import NavbarModal from "../../components/NavBar/NavbarModal/NavbarModal";
 import * as mockAuth from "../../auth";
 
-/***
- * TODO:
- * 1. Refactor callback function
- */
+/** test clean up **/
+afterEach(() => {
+    jest.clearAllMocks();
+});
+
+const toggleModal = jest.fn((event, cb) => {
+    if (cb) cb();
+});
 
 test('should render Logout button when authenticated true in NavbarModal', () => {
 
     /** mocks **/
     jest.spyOn(mockAuth, 'authenticated').mockImplementation(() => true);
     jest.spyOn(global, 'fetch').mockResolvedValueOnce({});
-    const toggleModal = jest.fn((event, cb) => {
-        cb();
-    });
 
     /** render navbar modal **/
     const history = createMemoryHistory({initialEntries: ['/something']});
@@ -45,11 +46,6 @@ test('should render Logout button when authenticated true in NavbarModal', () =>
 
 test('should go to /home when click on home button', () => {
 
-    /** mocks **/
-    const toggleModal = jest.fn((event, cb) => {
-        cb();
-    });
-
     /** render navbar modal **/
     const history = createMemoryHistory({initialEntries: ['/something']});
     const {getByTestId} = render(<Router history={history}><NavbarModal modalOpen={true} toggleModal={toggleModal}
@@ -62,11 +58,6 @@ test('should go to /home when click on home button', () => {
 });
 
 test('should go to #signup when click on signup button', () => {
-
-    /** mocks **/
-    const toggleModal = jest.fn((event, cb) => {
-        cb();
-    });
 
     /** render navbar modal **/
     const history = createMemoryHistory({initialEntries: ['/something']});
@@ -81,11 +72,6 @@ test('should go to #signup when click on signup button', () => {
 
 test('should go to #login when click on login button', () => {
 
-    /** mocks **/
-    const toggleModal = jest.fn((event, cb) => {
-        cb();
-    });
-
     /** render navbar modal **/
     const history = createMemoryHistory({initialEntries: ['/something']});
     const {getByTestId} = render(<Router history={history}><NavbarModal modalOpen={true} toggleModal={toggleModal}
@@ -98,11 +84,6 @@ test('should go to #login when click on login button', () => {
 });
 
 test('should trigger callback when click on close button', () => {
-
-    /** mocks **/
-    const toggleModal = jest.fn((event, cb) => {
-        if (cb) cb();
-    });
 
     /** render navbar modal **/
     const history = createMemoryHistory({initialEntries: ['/something']});
