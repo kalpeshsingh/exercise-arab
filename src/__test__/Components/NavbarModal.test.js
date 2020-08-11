@@ -6,6 +6,7 @@ import {createMemoryHistory} from 'history';
 
 /** test function imports **/
 import NavbarModal from "../../components/NavBar/NavbarModal/NavbarModal";
+import * as mockAuth from "../../auth";
 
 test('should render Logout button when authenticated true in NavbarModal', () => {
 
