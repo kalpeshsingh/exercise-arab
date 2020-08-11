@@ -8,6 +8,11 @@ import {createMemoryHistory} from 'history';
 import NavbarModal from "../../components/NavBar/NavbarModal/NavbarModal";
 import * as mockAuth from "../../auth";
 
+/***
+ * TODO:
+ * 1. Refactor callback function
+ */
+
 test('should render Logout button when authenticated true in NavbarModal', () => {
 
     /** mocks **/
@@ -89,5 +94,23 @@ test('should go to #login when click on login button', () => {
 
     fireEvent.click(getByTestId('login-btn-navbar-modal')); // should assign href to #login
     expect(window.location.href).toContain("/#login"); // anchor to #login
+
+});
+
+test('should trigger callback when click on close button', () => {
+
+    /** mocks **/
+    const toggleModal = jest.fn((event, cb) => {
+        if (cb) cb();
+    });
+
+    /** render navbar modal **/
+    const history = createMemoryHistory({initialEntries: ['/something']});
+    const {getByLabelText} = render(<Router history={history}><NavbarModal modalOpen={true} toggleModal={toggleModal}
+                                                                           history={history}/></Router>);
+    expect(getByLabelText('close')).toBeInTheDocument();
+
+    fireEvent.click(getByLabelText('close')); // should trigger callback
+    expect(toggleModal).toHaveBeenCalledTimes(1);
 
 });
