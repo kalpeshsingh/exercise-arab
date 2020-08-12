@@ -336,6 +336,17 @@ test('should render toast if loan-form is absent from localstorage', async () =>
 
 
 describe('should call update loan api if form id is present in localstorage', () => {
+
+    const fetchParams = {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer abc`
+        },
+        body: JSON.stringify({'data': 'abc', 'status': 0, 'id': 'abc'})
+    };
+
     test('should show data saved toast if api return "success" field as true', async () => {
 
         /** mocks **/
@@ -345,16 +356,6 @@ describe('should call update loan api if form id is present in localstorage', ()
 
         const mockResponse = {
             success: true
-        };
-
-        const fetchParams = {
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer abc`
-            },
-            body: JSON.stringify({'data': 'abc', 'status': 0, 'id': 'abc'})
         };
 
         /** mock login function response **/
@@ -388,16 +389,6 @@ describe('should call update loan api if form id is present in localstorage', ()
         const mockResponse = {
             success: false,
             msg: 'test msg'
-        };
-
-        const fetchParams = {
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer abc`
-            },
-            body: JSON.stringify({'data': 'abc', 'status': 0, 'id': 'abc'})
         };
 
         /** mock login function response **/
@@ -441,6 +432,21 @@ describe('should call update loan api if form id is present in localstorage', ()
 });
 
 describe('should call update loan api if form id is absent in localstorage', () => {
+
+    const fetchParams = {
+        method: 'POST',
+        mode: 'cors',
+        headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer abc`
+        },
+        body: JSON.stringify({
+            'data': 'abc',
+            'status': 0,
+            'user_id': 'abc'
+        })
+    };
+
     test('should show data saved toast if api return "success" field as true', async () => {
 
         /** mocks **/
@@ -458,20 +464,6 @@ describe('should call update loan api if form id is absent in localstorage', () 
 
         const mockResponse = {
             success: true
-        };
-
-        const fetchParams = {
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer abc`
-            },
-            body: JSON.stringify({
-                'data': 'abc',
-                'status': 0,
-                'user_id': 'abc'
-            })
         };
 
         /** mock login function response **/
@@ -516,20 +508,6 @@ describe('should call update loan api if form id is absent in localstorage', () 
         const mockResponse = {
             success: false,
             msg: 'abc'
-        };
-
-        const fetchParams = {
-            method: 'POST',
-            mode: 'cors',
-            headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer abc`
-            },
-            body: JSON.stringify({
-                'data': 'abc',
-                'status': 0,
-                'user_id': 'abc'
-            })
         };
 
         /** mock login function response **/
