@@ -2,7 +2,7 @@
 import {toast} from "react-toastify";
 
 /** test function imports **/
-import {authenticated, login, backendUrl, getLoanByStatus} from '../auth';
+import {authenticated, login, backendUrl, getLoanByStatus, logout} from '../auth';
 
 
 /***PENDING:
@@ -317,3 +317,268 @@ test('should fail loan status call', async () => {
     expect(toast.info.mock.calls[0].length).toBe(2);
 
 });
+
+test('should render toast if loan-form is absent from localstorage', async () => {
+
+    /** mocks **/
+    jest.spyOn(Storage.prototype, 'getItem');
+    jest.spyOn(Storage.prototype, 'removeItem');
+    Storage.prototype.getItem = jest.fn(() => '');
+
+    await logout();
+
+    /** assertion of toast module **/
+    expect(toast.info).toHaveBeenCalledTimes(1);
+    expect(toast.info).toHaveBeenCalledWith('successfully logged out', {position: toast.POSITION.BOTTOM_CENTER});
+    expect(toast.info.mock.calls[0].length).toBe(2);
+
+});
+
+
+describe('should call update loan api if form id is present in localstorage', () => {
+    test('should show data saved toast if api return "success" field as true', async () => {
+
+        /** mocks **/
+        jest.spyOn(Storage.prototype, 'getItem');
+        jest.spyOn(Storage.prototype, 'removeItem');
+        Storage.prototype.getItem = jest.fn(() => 'abc');
+
+        const mockResponse = {
+            success: true
+        };
+
+        const fetchParams = {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer abc`
+            },
+            body: JSON.stringify({'data': 'abc', 'status': 0, 'id': 'abc'})
+        };
+
+        /** mock login function response **/
+        const mockJsonPromise = Promise.resolve(mockResponse);
+        const mockFetchPromise = Promise.resolve({
+            json: () => mockJsonPromise
+        });
+
+        jest.spyOn(global, 'fetch').mockImplementation(() => mockFetchPromise);
+
+        await logout();
+
+        /** assertion of fetch module **/
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+        expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/loan/update`, fetchParams);
+
+        /** assertion of toast module **/
+        expect(toast.info).toHaveBeenCalledTimes(2);
+        expect(toast.info).toHaveBeenCalledWith('Data Saved Successfully', {position: toast.POSITION.BOTTOM_CENTER});
+        expect(toast.info.mock.calls[0].length).toBe(2);
+
+    });
+
+    test('should show error message toast if api return "success" field as false', async () => {
+
+        /** mocks **/
+        jest.spyOn(Storage.prototype, 'getItem');
+        jest.spyOn(Storage.prototype, 'removeItem');
+        Storage.prototype.getItem = jest.fn(() => 'abc');
+
+        const mockResponse = {
+            success: false,
+            msg: 'test msg'
+        };
+
+        const fetchParams = {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer abc`
+            },
+            body: JSON.stringify({'data': 'abc', 'status': 0, 'id': 'abc'})
+        };
+
+        /** mock login function response **/
+        const mockJsonPromise = Promise.resolve(mockResponse);
+        const mockFetchPromise = Promise.resolve({
+            json: () => mockJsonPromise
+        });
+
+        jest.spyOn(global, 'fetch').mockImplementation(() => mockFetchPromise);
+
+        await logout();
+
+        /** assertion of fetch module **/
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+        expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/loan/update`, fetchParams);
+
+        /** assertion of toast module **/
+        expect(toast.info).toHaveBeenCalledTimes(2);
+        expect(toast.info).toHaveBeenCalledWith(`Error(${mockResponse.msg}) in saving data, you have been logged out`, {position: toast.POSITION.BOTTOM_CENTER});
+        expect(toast.info.mock.calls[0].length).toBe(2);
+
+    });
+
+    test('should fail loan update call', async () => {
+
+        /** mocks **/
+        const mockFailureResponse = Promise.reject();
+        jest.spyOn(global, 'fetch').mockImplementation(() => mockFailureResponse);
+        jest.spyOn(Storage.prototype, 'getItem');
+        Storage.prototype.getItem = jest.fn(() => 'abc');
+
+        await logout();
+
+        /** assertion of toast module **/
+        expect(toast).toHaveBeenCalledTimes(1);
+        expect(toast).toHaveBeenCalledWith('Something went wrong, Internet might be down');
+        expect(toast.mock.calls[0].length).toBe(1);
+
+    });
+
+});
+
+describe('should call update loan api if form id is absent in localstorage', () => {
+    test('should show data saved toast if api return "success" field as true', async () => {
+
+        /** mocks **/
+        jest.spyOn(Storage.prototype, 'getItem');
+        jest.spyOn(Storage.prototype, 'removeItem');
+        Storage.prototype.getItem = jest.fn((item) => {
+            if (item === 'loan-form') {
+                return 'abc'
+            } else if (item === 'loan-form-id') {
+                return ''
+            } else {
+                return 'abc'
+            }
+        });
+
+        const mockResponse = {
+            success: true
+        };
+
+        const fetchParams = {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer abc`
+            },
+            body: JSON.stringify({
+                'data': 'abc',
+                'status': 0,
+                'user_id': 'abc'
+            })
+        };
+
+        /** mock login function response **/
+        const mockJsonPromise = Promise.resolve(mockResponse);
+        const mockFetchPromise = Promise.resolve({
+            json: () => mockJsonPromise
+        });
+
+        jest.spyOn(global, 'fetch').mockImplementation(() => mockFetchPromise);
+
+        await logout();
+
+        /** assertion of fetch module **/
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+        expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/loan/apply`, fetchParams);
+
+        /** assertion of toast module **/
+        expect(toast.info).toHaveBeenCalledTimes(2);
+        expect(toast.info).toHaveBeenCalledWith('Data Saved Successfully', {position: toast.POSITION.BOTTOM_CENTER});
+        expect(toast.info.mock.calls[0].length).toBe(2);
+
+        expect(toast.info).toHaveBeenCalledWith('Saving current form state', {position: toast.POSITION.BOTTOM_CENTER});
+        expect(toast.info.mock.calls[0].length).toBe(2);
+
+    });
+
+    test('should show error toast if api return "success" field as false', async () => {
+
+        /** mocks **/
+        jest.spyOn(Storage.prototype, 'getItem');
+        jest.spyOn(Storage.prototype, 'removeItem');
+        Storage.prototype.getItem = jest.fn((item) => {
+            if (item === 'loan-form') {
+                return 'abc'
+            } else if (item === 'loan-form-id') {
+                return ''
+            } else {
+                return 'abc'
+            }
+        });
+
+        const mockResponse = {
+            success: false,
+            msg: 'abc'
+        };
+
+        const fetchParams = {
+            method: 'POST',
+            mode: 'cors',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer abc`
+            },
+            body: JSON.stringify({
+                'data': 'abc',
+                'status': 0,
+                'user_id': 'abc'
+            })
+        };
+
+        /** mock login function response **/
+        const mockJsonPromise = Promise.resolve(mockResponse);
+        const mockFetchPromise = Promise.resolve({
+            json: () => mockJsonPromise
+        });
+
+        jest.spyOn(global, 'fetch').mockImplementation(() => mockFetchPromise);
+
+        await logout();
+
+        /** assertion of fetch module **/
+        expect(global.fetch).toHaveBeenCalledTimes(1);
+        expect(global.fetch).toHaveBeenCalledWith(`${backendUrl()}/loan/apply`, fetchParams);
+
+        /** assertion of toast module **/
+        expect(toast.error).toHaveBeenCalledTimes(1);
+        expect(toast.error).toHaveBeenCalledWith(`Error(${mockResponse['msg']}) in saving data, you have been logged out`);
+        expect(toast.error.mock.calls[0].length).toBe(1);
+
+        expect(toast.info).toHaveBeenCalledTimes(1);
+        expect(toast.info).toHaveBeenCalledWith('Saving current form state', {position: toast.POSITION.BOTTOM_CENTER});
+        expect(toast.info.mock.calls[0].length).toBe(2);
+
+    });
+
+    test('should fail loan apply call', async () => {
+
+        /** mocks **/
+        const mockFailureResponse = Promise.reject();
+        jest.spyOn(global, 'fetch').mockImplementation(() => mockFailureResponse);
+        jest.spyOn(Storage.prototype, 'getItem');
+        Storage.prototype.getItem = jest.fn((item) => {
+            if (item === 'loan-form') {
+                return 'abc'
+            } else {
+                return ''
+            }
+        });
+
+        await logout();
+
+        /** assertion of toast module **/
+        expect(toast).toHaveBeenCalledTimes(1);
+        expect(toast).toHaveBeenCalledWith('Something went wrong, Internet might be down');
+        expect(toast.mock.calls[0].length).toBe(1);
+
+    });
+
+});
+
