@@ -337,6 +337,7 @@ test('should render toast if loan-form is absent from localstorage', async () =>
 
 describe('should call update loan api if form id is present in localstorage', () => {
 
+    // common code through out describe
     const fetchParams = {
         method: 'POST',
         mode: 'cors',
@@ -347,11 +348,12 @@ describe('should call update loan api if form id is present in localstorage', ()
         body: JSON.stringify({'data': 'abc', 'status': 0, 'id': 'abc'})
     };
 
+    jest.spyOn(Storage.prototype, 'getItem');
+    jest.spyOn(Storage.prototype, 'removeItem');
+
     test('should show data saved toast if api return "success" field as true', async () => {
 
         /** mocks **/
-        jest.spyOn(Storage.prototype, 'getItem');
-        jest.spyOn(Storage.prototype, 'removeItem');
         Storage.prototype.getItem = jest.fn(() => 'abc');
 
         const mockResponse = {
@@ -382,8 +384,6 @@ describe('should call update loan api if form id is present in localstorage', ()
     test('should show error message toast if api return "success" field as false', async () => {
 
         /** mocks **/
-        jest.spyOn(Storage.prototype, 'getItem');
-        jest.spyOn(Storage.prototype, 'removeItem');
         Storage.prototype.getItem = jest.fn(() => 'abc');
 
         const mockResponse = {
@@ -417,7 +417,6 @@ describe('should call update loan api if form id is present in localstorage', ()
         /** mocks **/
         const mockFailureResponse = Promise.reject();
         jest.spyOn(global, 'fetch').mockImplementation(() => mockFailureResponse);
-        jest.spyOn(Storage.prototype, 'getItem');
         Storage.prototype.getItem = jest.fn(() => 'abc');
 
         await logout();
@@ -433,6 +432,7 @@ describe('should call update loan api if form id is present in localstorage', ()
 
 describe('should call update loan api if form id is absent in localstorage', () => {
 
+    // common code through out describe
     const fetchParams = {
         method: 'POST',
         mode: 'cors',
@@ -447,11 +447,12 @@ describe('should call update loan api if form id is absent in localstorage', () 
         })
     };
 
+    jest.spyOn(Storage.prototype, 'getItem');
+    jest.spyOn(Storage.prototype, 'removeItem');
+
     test('should show data saved toast if api return "success" field as true', async () => {
 
         /** mocks **/
-        jest.spyOn(Storage.prototype, 'getItem');
-        jest.spyOn(Storage.prototype, 'removeItem');
         Storage.prototype.getItem = jest.fn((item) => {
             if (item === 'loan-form') {
                 return 'abc'
@@ -493,8 +494,6 @@ describe('should call update loan api if form id is absent in localstorage', () 
     test('should show error toast if api return "success" field as false', async () => {
 
         /** mocks **/
-        jest.spyOn(Storage.prototype, 'getItem');
-        jest.spyOn(Storage.prototype, 'removeItem');
         Storage.prototype.getItem = jest.fn((item) => {
             if (item === 'loan-form') {
                 return 'abc'
@@ -540,7 +539,6 @@ describe('should call update loan api if form id is absent in localstorage', () 
         /** mocks **/
         const mockFailureResponse = Promise.reject();
         jest.spyOn(global, 'fetch').mockImplementation(() => mockFailureResponse);
-        jest.spyOn(Storage.prototype, 'getItem');
         Storage.prototype.getItem = jest.fn((item) => {
             if (item === 'loan-form') {
                 return 'abc'
